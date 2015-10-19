@@ -1,0 +1,93 @@
+export PATH=/apollo/env/SDETools/bin:/apollo/env/OctaneBrazilTools/bin:/apollo/env/envImprovement/bin:/apollo/bin:$PATH
+
+
+if ! klist -s; then kinit -f; fi
+
+export EDITOR=nano
+export PAGER=less
+
+export LESS="-F"
+
+export PS1="[\u@%host] \w> "
+
+function cd () {
+    if [[ -n $@ ]] ; then
+        WORKSPACE=
+
+        for d in $(realpath "$@" | tr "/" "\n")
+        do
+            if [[ "$d" -eq "src" ]] ; then break; fi
+            WORKSPACE="$WORKSPACE/$d"
+        done
+
+        export WORKSPACE
+    fi
+    builtin cd "$@"
+}
+
+alias bb=brazil-build
+alias bbr="brazil-build release"
+alias brazil-octane=/apollo/env/OctaneBrazilTools/bin/brazil-octane
+
+function brazil-sync () {
+    pushd $WORKSPACE/src
+    for d in `ls -1`; do
+        pushd $d
+        git stash
+        popd
+    done
+
+    brazil ws --sync
+
+    for d in `ls -1`; do
+        pushd $d
+        git stash pop
+        popd
+    done
+
+    popd
+}
+
+function brazil-clean () {
+    pushd $WORKSPACE/src
+    for d in `ls -1`; do
+        pushd $d
+        rm -rf build
+        popd
+    done
+
+    brazil ws --clean
+
+    popd
+}
+
+IGNORE_DIRS="build .git env .idea index.lock .brazilcli packageInfo packageInfo.bak  release-info"
+
+for i in $IGNORE_DIRS;
+do
+    RSYNC_IGNORE="--exclude $i $RSYNC_IGNORE";
+    INOTIFY_IGNORE="@$i $INOTIFY_IGNORE"
+done
+
+export RSYNC_IGNORE
+export INOTIFY_IGNORE
+
+export RSYNC_ARGS=-rpvud
+
+function sync-folder() {
+    box=$1
+    src=$2
+    dst=$3
+    rsync $RSYNC_ARGS $RSYNC_IGNORE $src $USER@$box:$dst
+}
+
+function sync-laptop() {
+    sync-folder $LAPTOP $@
+}
+
+function sync-desktop() {
+    sync-folder $DESKTOP $@
+}
+export DESKTOP="%desktop"
+export LAPTOP="%laptop"
+
