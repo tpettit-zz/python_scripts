@@ -35,9 +35,12 @@ config = {
         },
     },
     'laptop': {
-        'host': 'timothp-laptop.aka.amazon.com',
+        'host': 'timothp-laptop.aka.corp.amazon.com',
         'home': '/Users/timothp',
-        'bashrc': '.profile',
+        'bashrc': {
+            'name': '.profile',
+            'pre_tmpl': PercentTemplate(open('laptop.tmpl', 'r').read())
+        },
         'git': 'git'
     },
 

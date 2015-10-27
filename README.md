@@ -1,2 +1,3 @@
 # python_scripts
-Random Python Scripts
+
+collection of utility scripts 
